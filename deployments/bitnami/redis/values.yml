@@ -1,0 +1,12 @@
+global:
+  redis:
+    password: changeME123!
+commonLabels:
+  app.kubernetes.io/app: redis
+  app.kubernetes.io/component: backend
+image:
+  registry: docker.io
+  repository: bitnami/redis
+  tag: 6.2.3-debian-10-r15
+  pullPolicy: IfNotPresent
+architecture: standalone
