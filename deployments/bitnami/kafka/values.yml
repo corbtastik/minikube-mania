@@ -1,0 +1,16 @@
+image:
+  registry: docker.io
+  repository: bitnami/kafka
+  tag: 2.8.0-debian-10-r24
+  pullPolicy: IfNotPresent
+commonLabels:
+  app.kubernetes.io/app: kafka
+  app.kubernetes.io/component: message-broker
+auth:
+  clientProtocol: sasl
+  sasl:
+    jaas:
+      clientUsers:
+        - main_user
+      clientPasswords:
+        - changeME123!

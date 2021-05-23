@@ -7,7 +7,7 @@ helm install redis-mini -f values.yml --namespace redis bitnami/redis
 ```
 
 ## Accessing Redis
-
+  
 Redis(TM) can be accessed via port 6379 on the following DNS name from within your cluster:
 
 ```
@@ -50,3 +50,8 @@ To connect to your database from outside the cluster execute the following comma
 kubectl port-forward --namespace redis svc/redis-mini-master 6379:6379 &
 redis-cli -h 127.0.0.1 -p 6379 -a $REDIS_PASSWORD
 ```
+
+## References
+
+1. [Container Image](https://hub.docker.com/r/bitnami/redis)
+1. [Helm Chart](https://github.com/bitnami/charts/tree/master/bitnami/redis)
