@@ -35,9 +35,11 @@ To access the MinIO(R) web UI:
 
 - Get the MinIO(R) URL:
 
-   echo "MinIO(R) web URL: http://127.0.0.1:9000/minio"
-   kubectl port-forward --namespace minio svc/mini-minio 9000:9000
+```
+echo "MinIO(R) web URL: http://127.0.0.1:9000/minio"
+kubectl port-forward --namespace minio svc/mini-minio 9000:9000
+```
 
 # References
 
-* []()
+* [MinIO Client Container](https://github.com/bitnami/bitnami-docker-minio-client)
