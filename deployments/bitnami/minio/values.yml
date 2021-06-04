@@ -10,7 +10,7 @@ global:
   imagePullSecrets: []
   ## Global storageClass
   ##
-  # storageClass: myStorageClass
+  storageClass: local-hostpath
   ## Global MinIO(R) credentials
   ## e.g:
   ## minio:
@@ -372,7 +372,7 @@ sidecars: {}
 service:
   ## MinIO(R) Service type
   ##
-  type: ClusterIP
+  type: LoadBalancer
   ## MinIO(R) Service port
   ##
   port: 9000
@@ -383,7 +383,7 @@ service:
   ## loadBalancerIP for the MinIO(R) Service (optional, cloud specific)
   ## ref: http://kubernetes.io/docs/user-guide/services/#type-loadbalancer
   ##
-  # loadBalancerIP:
+  # loadBalancerIP: 192.168.13.203
   ## Load Balancer sources
   ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
   ## e.g:
@@ -534,7 +534,7 @@ persistence:
     - ReadWriteOnce
   ## Persistent Volume size
   ##
-  size: 8Gi
+  size: 10Gi
   ## Persistent Volume Claim annotations
   ##
   annotations: {}

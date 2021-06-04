@@ -1,0 +1,28 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: minio1-cert
+spec:
+  # Secret that will contain the cert
+  secretName: minio1-tls
+  duration: 2160h   # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+    - retro
+  commonName: 192.168.13.102
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  # At least one of a DNS Name, URI, or IP address is required.
+  dnsNames:
+  - 192.168.13.102
+  # Our self-signed issuer
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer

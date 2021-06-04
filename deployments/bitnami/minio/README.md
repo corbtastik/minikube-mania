@@ -1,5 +1,10 @@
 # Bitnami MinIO
 
+## Installing
+
+```
+helm install minio-bitnami -f values.yml --namespace minio bitnami/minio
+```
 
 ## Accessing within minikube
 
