@@ -1,0 +1,22 @@
+global:
+  storageClass: local-hostpath
+  postgresql:
+    postgresqlDatabase: test
+    postgresqlUsername: main_user
+    postgresqlPassword: changeME123!
+persistence:
+  storageClass: local-hostpath
+  size: 10Gi
+primary:
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/kind: primary
+    app.kubernetes.io/component: backend   
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.13.101
+image:
+  registry: docker.io
+  repository: bitnami/postgresql
+  tag: 11.12.0-debian-10-r5
+  pullPolicy: IfNotPresent

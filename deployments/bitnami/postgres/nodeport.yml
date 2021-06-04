@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: postgres-external
+  namespace: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/kind: service
+    app.kubernetes.io/component: nodeport
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30432
+  selector:
+    app.kubernetes.io/instance: postgres-bitnami
+    app.kubernetes.io/name: postgresql
+  type: NodePort
