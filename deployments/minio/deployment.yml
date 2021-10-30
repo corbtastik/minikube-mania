@@ -2,15 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
+  namespace: minio
   labels:
     app.kubernetes.io/name: minio
     app.kubernetes.io/component: backend
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: minio
       app.kubernetes.io/component: backend
-  replicas: 1
   template:
     metadata:
       labels:
@@ -18,33 +19,35 @@ spec:
         app.kubernetes.io/component: backend
     spec:
       containers:
-      - name: minio
-        image: minio/minio:latest
-        args:
-          - server
-          - /data
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        ports:
-        - containerPort: 9000                     
-        env:
-          - name: MINIO_ROOT_USER
-            valueFrom:
-              secretKeyRef:
-                name: minio-admin-creds
-                key: username
-          - name: MINIO_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: minio-admin-creds
-                key: password
-        volumeMounts:
-        - name: minio-data
-          mountPath: /data          
+        - name: minio-server
+          image: minio/minio:latest
+          args:
+            - server
+            - --address
+            - :9000
+            - --console-address
+            - :9001
+            - /data
+          ports:
+            - name: http-server
+              containerPort: 9000
+            - name: http-console
+              containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-admin-creds
+                  key: username
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-admin-creds
+                  key: password
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
       volumes:
-      - name: minio-data
-        persistentVolumeClaim:
-          claimName: minio-pvc8gb    
-         
+        - name: minio-data
+          persistentVolumeClaim:
+            claimName: minio-pvc

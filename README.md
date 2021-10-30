@@ -1,6 +1,6 @@
 # minikube-mania
 
-An exploration in using minikube for development, specifically to run the following containers:
+An exploration in using [minikube](https://minikube.sigs.k8s.io/) to host platforms for my local development environment.
 
 ## DIY Deployments
 
