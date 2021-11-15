@@ -57,3 +57,22 @@ Users don't log into Object Stores, applications do. Object Storage IAM should s
   * Certificate based authentication is "offline", the CA does not need to be online whenever authentication happens unlike external OIDC. This improves availability and fault tolerance.
   * Certificates are temporal, they expire and become invalid.
 * [AssumeRoleWithCertificate docs](https://github.com/minio/minio/blob/master/docs/sts/tls.md#assumerolewithcertificate)
+
+## Key Elements
+
+Key Element: Platform, Security, Authentication
+Object Storage IAM should support both manual (static) and programmatic (dynamic) application authentication.
+
+S3 compatible authentication relies on using static access/secret key credentials shared between the client and server. Support for static access/secret key credentials is expected as a base level for all Object Storage platforms. However managing a large number of static credentials becomes a security challenge at scale, yet implementing dynamic access/secret key credentials is taxing from a technical perspective.
+
+Thus as a next level of maturity Object Storage platforms should support use of Secure Token Service authentication via client X.509 certificates. Object Storage clients request ephemeral credentials by authenticating via X.509 certificates. The Object Storage platform receives the client certificate as part of the HTTPS connection, verifies its authenticity from a Certificate Authority (CA), then maps the client certificate Common Name (CN) to an identity. If the identity is known ephemeral access/secret keys are generated and exchanged with the client to perform Object Storage operations. Dynamic certificate based authentication methods have the following advantages over static access/secret key credentials.
+
+Certificate based authentication requires a TLS connection, thus S3 access/secret key credentials cannot be leaked over insecure network connections.
+Certificates are the standard way to prove the identity of network services, and widely supported across languages and SDKs.
+Certificates are temporal, they expire and become invalid.
+
+Key Element: Platform, Security, Identity Management
+Object Storage platforms should support internal identity management and the ability to integrate with external Identity Providers (IDP) that specialize in creation, authentication, and management of identities.
+
+Use of external Identity Providers should support identities and authentication for human users, not application based identities. Application based identities should standard Object Storage IAM with static access/secret key credentials or ideally client certificates with dynamic access/secret key credentials. 
+
