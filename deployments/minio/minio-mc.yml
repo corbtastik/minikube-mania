@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: minio-mc
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio-mc
+    app.kubernetes.io/component: cli-app  
+spec:
+  containers:
+    - name: minio-mc-container
+      image: minio/mc
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: MINIO_SERVER_HOST
+          value: "minio-server-svc.minio"
+        - name: MINIO_SERVER_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-admin-creds
+              key: username
+        - name: MINIO_SERVER_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-admin-creds
+              key: password

@@ -1,0 +1,159 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: minio-pvc
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: storage  
+spec:
+  # storageClassName: use default storage class or uncomment to specify
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-admin-creds
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: creds  
+data:
+  password: aG93ZHlNSU5JTzEyMyE=
+  username: bWluaW9fYWRtaW4=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - name: minio-server
+          image: minio/minio:latest
+          args:
+            - server
+            - --address
+            - :9000
+            - --console-address
+            - :9001
+            - /data
+          ports:
+            - name: http-server
+              containerPort: 9000
+            - name: http-console
+              containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-admin-creds
+                  key: username
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-admin-creds
+                  key: password
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+      volumes:
+        - name: minio-data
+          persistentVolumeClaim:
+            claimName: minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-server-svc
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: server-service
+spec:
+  ports:
+  - name: http
+    protocol: TCP  
+    port: 9000
+    targetPort: 9000
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-console-svc
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: console-service
+spec:
+  ports:
+  - name: http
+    protocol: TCP  
+    port: 9001
+    targetPort: 9001
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-server-lb
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: server-loadbalancer    
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP    
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: backend    
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-console-lb
+  namespace: minio
+  labels:
+    app.kubernetes.io/name: minio  
+    app.kubernetes.io/component: console-loadbalancer
+spec:
+  ports:
+  - port: 9001
+    targetPort: 9001
+    protocol: TCP    
+  selector:
+    app.kubernetes.io/name: minio  
+    app.kubernetes.io/component: backend
+  type: LoadBalancer
