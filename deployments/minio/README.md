@@ -24,4 +24,3 @@ The `minio-all.yml` defines everything needed for a single node MinIO server. Th
 8. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
 
 Both [Minikube](https://minikube.sigs.k8s.io/) and [K8s on Docker Desktop](https://docs.docker.com/desktop/kubernetes/) support hostpath Persistent Volume provisioning. You may need to edit `minio-all.yml` and specify the correct `storageClassName`. Docker Desktop's `storageClassName` is `hostpath`, where Minikube's is `standard`. The deployment yaml comments out `storageClassName` thus the cluster default Storage Class will be used, in most situations the default is set correctly by Minikube and Docker Desktop.
-
