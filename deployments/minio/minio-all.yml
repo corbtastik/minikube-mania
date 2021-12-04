@@ -9,8 +9,8 @@ metadata:
   name: minio-pvc
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: storage  
+    app/name: minio
+    app/component: storage  
 spec:
   # storageClassName: use default storage class or uncomment to specify
   accessModes:
@@ -26,11 +26,23 @@ metadata:
   name: minio-admin-creds
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: creds  
+    app/name: minio
+    app/component: creds  
 data:
   password: aG93ZHlNSU5JTzEyMyE=
   username: bWluaW9fYWRtaW4=
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-dev-creds
+  namespace: minio
+  labels:
+    app/name: minio
+    app/component: creds  
+data:
+  password: bWluaW9JU2Nvb2wxMjMh
+  username: bWluaW9fdXNlcg==
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,19 +50,19 @@ metadata:
   name: minio
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: backend
+    app/name: minio
+    app/component: backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: minio
-      app.kubernetes.io/component: backend
+      app/name: minio
+      app/component: backend
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: minio
-        app.kubernetes.io/component: backend
+        app/name: minio
+        app/component: backend
     spec:
       containers:
         - name: minio-server
@@ -78,6 +90,12 @@ spec:
                 secretKeyRef:
                   name: minio-admin-creds
                   key: password
+            # Does not require scraping clients to authenticate, for dev only
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: public
+            # Prometheus server URL, set to prometheus included with lens-ide
+            - name: MINIO_PROMETHEUS_URL
+              value: "http://prometheus.lens-metrics"
           volumeMounts:
             - name: minio-data
               mountPath: /data
@@ -92,8 +110,8 @@ metadata:
   name: minio-server-svc
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: server-service
+    app/name: minio
+    app/component: server-service
 spec:
   ports:
   - name: http
@@ -101,8 +119,8 @@ spec:
     port: 9000
     targetPort: 9000
   selector:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: backend
+    app/name: minio
+    app/component: backend
 ---
 apiVersion: v1
 kind: Service
@@ -110,8 +128,8 @@ metadata:
   name: minio-console-svc
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: console-service
+    app/name: minio
+    app/component: console-service
 spec:
   ports:
   - name: http
@@ -119,8 +137,8 @@ spec:
     port: 9001
     targetPort: 9001
   selector:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: backend
+    app/name: minio
+    app/component: backend
 ---
 apiVersion: v1
 kind: Service
@@ -128,16 +146,16 @@ metadata:
   name: minio-server-lb
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: server-loadbalancer    
+    app/name: minio
+    app/component: server-loadbalancer    
 spec:
   ports:
   - port: 9000
     targetPort: 9000
     protocol: TCP    
   selector:
-    app.kubernetes.io/name: minio
-    app.kubernetes.io/component: backend    
+    app/name: minio
+    app/component: backend    
   type: LoadBalancer
 ---
 apiVersion: v1
@@ -146,14 +164,14 @@ metadata:
   name: minio-console-lb
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio  
-    app.kubernetes.io/component: console-loadbalancer
+    app/name: minio  
+    app/component: console-loadbalancer
 spec:
   ports:
   - port: 9001
     targetPort: 9001
     protocol: TCP    
   selector:
-    app.kubernetes.io/name: minio  
-    app.kubernetes.io/component: backend
+    app/name: minio  
+    app/component: backend
   type: LoadBalancer

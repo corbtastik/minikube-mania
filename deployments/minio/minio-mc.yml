@@ -4,8 +4,8 @@ metadata:
   name: minio-mc
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio-mc
-    app.kubernetes.io/component: cli  
+    app/name: minio-mc
+    app/component: cli  
 spec:
   restartPolicy: Never 
   containers:
@@ -15,7 +15,9 @@ spec:
       command: ["/app/mc-init.sh"]
       volumeMounts:
         - name: mc-config
-          mountPath: "/app"      
+          mountPath: "/app"
+        - name: mc-data
+          mountPath: "/data" 
       env:
         - name: MINIO_SERVER_HOST
           value: "http://minio-server-svc.minio"
@@ -31,11 +33,24 @@ spec:
             secretKeyRef:
               name: minio-admin-creds
               key: password
+        - name: MINIO_DEV_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-dev-creds
+              key: username
+        - name: MINIO_DEV_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-dev-creds
+              key: password              
   volumes:
     - name: mc-config
       configMap:
         name: mc-config
-        defaultMode: 0745              
+        defaultMode: 0745
+    - name: mc-data
+      configMap:
+        name: mc-data
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -43,10 +58,91 @@ metadata:
   name: mc-config
   namespace: minio
   labels:
-    app.kubernetes.io/name: minio-mc
-    app.kubernetes.io/component: config
+    app/name: minio-mc
+    app/component: config
 data:
   mc-init.sh: |
     #!/bin/sh
+    set +o history
+    # target connection for admin tasks
     mc alias set minio $MINIO_SERVER_HOST:$MINIO_SERVER_PORT_NUMBER $MINIO_SERVER_ACCESS_KEY $MINIO_SERVER_SECRET_KEY
+    # add dev user, group and policies
+    mc admin user add minio $MINIO_DEV_ACCESS_KEY $MINIO_DEV_SECRET_KEY
+    mc admin group add minio developer $MINIO_DEV_ACCESS_KEY
+    mc admin policy set minio readwrite,diagnostics group=developer
+    set -o history    
+    # target connection for dev user tasks
+    mc alias set minio-dev $MINIO_SERVER_HOST:$MINIO_SERVER_PORT_NUMBER $MINIO_DEV_ACCESS_KEY $MINIO_DEV_SECRET_KEY
+    BUCKET=`date +%Y%m%d-%s`
+    mc mb minio-dev/$BUCKET
+    mc cp /data/howdy.txt minio-dev/$BUCKET
+    mc cp /data/mlb-parks.csv minio-dev/$BUCKET
+    mc cp /data/people.json minio-dev/$BUCKET
+    mc ls minio-dev/$BUCKET
+    set -o history
     while true; do sleep 5s; done
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mc-data
+  namespace: minio
+  labels:
+    app/name: minio-mc
+    app/component: sample-data
+data:
+  howdy.txt: |
+    Howdy MinIO!
+  mlb-parks.csv: |
+    park.key,park.name,park.alias,city,state,country
+    ANA01,Angel Stadium of Anaheim,Edison Field; Anaheim Stadium,Anaheim,CA,US
+    ARL02,Rangers Ballpark in Arlington,The Ballpark in Arlington; Ameriquest Fl,Arlington,TX,US
+    ATL03,Suntrust Park,,Atlanta,GA,US
+    BAL12,Oriole Park at Camden Yards,,Baltimore,MD,US
+    BOS07,Fenway Park,,Boston,MA,US
+    CHI11,Wrigley Field,Weeghman Park; Cubs Park,Chicago,IL,US
+    CHI12,Guaranteed Rate Field,U.S. Cellular Field;White Sox Park; Comiskey Park II,Chicago,IL,US
+    CIN09,Great American Ballpark,,Cincinnati,OH,US
+    CLE08,Progressive Field,Jacobs Field,Cleveland,OH,US
+    DEN02,Coors Field,,Denver,CO,US
+    DET05,Comerica Park,,Detroit,MI,US
+    HOU03,Minute Maid Park,Enron Field; Astros Field,Houston,TX,US
+    KAN06,Kauffman Stadium,Royals Stadium,Kansas City,MO,US
+    LOS03,Dodger Stadium,Chavez Ravine,Los Angeles,CA,US
+    MIA02,Marlins Park,,Miami,FL,US
+    MIL06,Miller Park,,Milwaukee,WI,US
+    MIN04,Target Field,,Minneapolis,MN,US
+    NYC20,Citi Field,,New York,NY,US
+    NYC21,Yankee Stadium II,,New York,NY,US
+    OAK01,Oakland-Alameda County Coliseum,Network Associates Coliseum,Oakland,CA,US
+    PHI13,Citizens Bank Park,,Philadelphia,PA,US
+    PHO01,Chase Field,Bank One Ballpark,Phoenix,AZ,US
+    PIT08,PNC Park,,Pittsburgh,PA,US
+    SAN02,PETCO Park,,San Diego,CA,US
+    SEA03,Safeco Field,T-Mobile Park,Seattle,WA,US
+    SFO03,AT&T Park,Pacific Bell Park; SBC Park,San Francisco,CA,US
+    STL10,Busch Stadium III,,St. Louis,MO,US
+    STP01,Tropicana Field,,St. Petersburg,FL,US
+    TOR02,Rogers Centre,Skydome,Toronto,ON,CA
+    WAS11,Nationals Park,,Washington,DC,US
+  people.json: |
+    {"id":1,"first_name":"Zaria","last_name":"Casino","email":"zcasino0@si.edu","phone":"702-631-6520","job_title":"Web Developer III"}
+    {"id":2,"first_name":"Betta","last_name":"Kellough","email":"bkellough1@adobe.com","phone":"531-953-9850","job_title":"Compensation Analyst"}
+    {"id":3,"first_name":"Kippie","last_name":"Aldrick","email":"kaldrick2@salon.com","phone":"381-303-6257","job_title":"Junior Executive"}
+    {"id":4,"first_name":"Scottie","last_name":"Hearons","email":"shearons3@skyrock.com","phone":"277-663-9981","job_title":"Engineer IV"}
+    {"id":5,"first_name":"Naoma","last_name":"Trill","email":"ntrill4@about.me","phone":"346-108-9275","job_title":"Internal Auditor"}
+    {"id":6,"first_name":"Florence","last_name":"MacAne","email":"fmacane5@t-online.de","phone":"450-275-2382","job_title":"Database Administrator III"}
+    {"id":7,"first_name":"Ginger","last_name":"Dunning","email":"gdunning6@independent.co.uk","phone":"773-644-6540","job_title":"GIS Technical Architect"}
+    {"id":8,"first_name":"Roldan","last_name":"Wrightim","email":"rwrightim7@stanford.edu","phone":"612-723-3577","job_title":"VP Accounting"}
+    {"id":9,"first_name":"Aveline","last_name":"Vedeneev","email":"avedeneev8@last.fm","phone":"713-363-8211","job_title":"Financial Analyst"}
+    {"id":10,"first_name":"Addie","last_name":"O'Connell","email":"aoconnell9@si.edu","phone":"383-829-6810","job_title":"Engineer I"}
+    {"id":11,"first_name":"Carree","last_name":"Croneen","email":"ccroneena@about.me","phone":"956-287-9675","job_title":"Director of Sales"}
+    {"id":12,"first_name":"Killy","last_name":"Makeswell","email":"kmakeswellb@aboutads.info","phone":"480-884-5539","job_title":"Help Desk Technician"}
+    {"id":13,"first_name":"Britte","last_name":"Furley","email":"bfurleyc@a8.net","phone":"756-228-6171","job_title":"Help Desk Operator"}
+    {"id":14,"first_name":"Bert","last_name":"Artindale","email":"bartindaled@shareasale.com","phone":"503-843-5382","job_title":"Research Associate"}
+    {"id":15,"first_name":"Brooks","last_name":"Wilson","email":"bwilsone@behance.net","phone":"152-719-1462","job_title":"Physical Therapy Assistant"}
+    {"id":16,"first_name":"Xylia","last_name":"Stebbings","email":"xstebbingsf@trellian.com","phone":"273-618-7236","job_title":"Editor"}
+    {"id":17,"first_name":"Charmain","last_name":"Mardle","email":"cmardleg@paypal.com","phone":"414-966-7120","job_title":"Associate Professor"}
+    {"id":18,"first_name":"Alia","last_name":"Findley","email":"afindleyh@networkadvertising.org","phone":"547-749-8169","job_title":"Associate Professor"}
+    {"id":19,"first_name":"Paquito","last_name":"Vallerine","email":"pvallerinei@businessinsider.com","phone":"966-823-2875","job_title":"Senior Sales Associate"}
+    {"id":20,"first_name":"Raimundo","last_name":"Liggett","email":"rliggettj@woothemes.com","phone":"258-460-0109","job_title":"Web Developer I"}  
