@@ -62,6 +62,10 @@ $ kubectl apply -f minio-all.yml
 1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9000` on the MinIO deployment for external server connectivity.
 1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
 
+After deploying open `http://localhost:9001` with your browser and login for a quick sanity check.
+
+![MinIO Console](resources/MinIO-Console.png "MinIO Console")
+
 
 ## Deploy MinIO Client
 
