@@ -9,7 +9,8 @@ This repo contains a simple, single node MinIO deployment useful for local devel
 * Install either [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Minikube](https://minikube.sigs.k8s.io/docs/).
   * If using Docker Desktop enable Kubernetes integration.
   * If using Minikube select your [driver](https://minikube.sigs.k8s.io/docs/drivers/) of choice. These docs assume the docker driver is used.
-* Install [Lens K8s IDE](https://k8slens.dev/). This is optional but recommended.
+* Install [Lens K8s IDE](https://k8slens.dev/).
+  * This is optional but recommended for navigating your K8s environment and for an easy button Prometheus deployment.
 
 The deployment yaml __does NOT__ use templates to substitute values on `kubectl apply`, for example with `envsubst`, or [kustomize](https://kustomize.io/). Thus __before applying__ confirm values for the following.
 
