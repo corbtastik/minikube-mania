@@ -23,6 +23,19 @@ Both [Minikube](https://minikube.sigs.k8s.io/) and [K8s on Docker Desktop](https
   * __MINIO_PROMETHEUS_AUTH_TYPE:__ Set to "public" thus Prometheus does not authenticate with MinIO to scrape metrics.
   * __MINIO_PROMETHEUS_URL:__ Set to the Prometheus service URL (`http://prometheus.lens-metrics`).
 
+Add the following scrape config for MinIO to your Prometheus deployment. If using Prometheus provided by Lens the configuration is stored in the `prometheus-config` ConfigMap.
+
+```yaml
+# prometheus.yml
+scrape_configs:
+# scrape config for minio object storage deployment
+- job_name: minio-job
+  metrics_path: /minio/v2/metrics/cluster
+  scheme: http
+  static_configs:
+  - targets: ['minio-server-svc.minio:9000'] 
+```
+
 ### Secrets for Admin and Dev Users
 
 The following Secrets have values for username and password. Change to your tastes.
