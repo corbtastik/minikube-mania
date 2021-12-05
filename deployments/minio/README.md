@@ -29,7 +29,7 @@ Add the following scrape config for MinIO to your Prometheus deployment. If usin
 ```yaml
 # prometheus.yml
 scrape_configs:
-# scrape config for minio object storage deployment
+# scrape config for MinIO configured with MINIO_PROMETHEUS_AUTH_TYPE=public
 - job_name: minio-job
   metrics_path: /minio/v2/metrics/cluster
   scheme: http
