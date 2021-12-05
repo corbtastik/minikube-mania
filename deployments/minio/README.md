@@ -53,13 +53,14 @@ $ kubectl apply -f minio-all.yml
 ```
 
 1. A `minio` namespace where everything is deployed.
-2. An 8Gi [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims), mounted to `/data` on the MinIO server.
-3. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO admin creds.
-4. A [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for the MinIO server including the admin console.
-5. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9000` on the MinIO deployment for server connectivity.
-6. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9001` on the MinIO deployment for admin console connectivity.
-7. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9000` on the MinIO deployment for external server connectivity.
-8. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
+1. An 8Gi [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims), mounted to `/data` on the MinIO server.
+1. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO admin creds.
+1. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO dev user creds.
+1. A [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for the MinIO server including the admin console.
+1. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9000` on the MinIO deployment for server connectivity.
+1. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9001` on the MinIO deployment for admin console connectivity.
+1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9000` on the MinIO deployment for external server connectivity.
+1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
 
 
 ## Deploy MinIO Client
