@@ -4,12 +4,47 @@
 
 This repo contains a simple, single node MinIO deployment useful for local development.  It does not use the before mentioned [Operator](https://github.com/minio/operator) or Helm Chart, rather just vanilla K8s descriptors, suitable for [Minikube](https://minikube.sigs.k8s.io/) or [K8s on Docker Desktop](https://docs.docker.com/desktop/kubernetes/).
 
-> __Note:__ The deployment yaml does NOT use templates to inject variable values on `kubectl apply`, for example with `envsubst`, or [kustomize](https://kustomize.io/). Such tools and techniques are great but avoided here to keep things simple. Thus __before applying__ add values for the following...
+## Setup
 
-* PersistentVolumeClaim `storageClassName`, commented out, thus will use "default", comment in to provide specific storage class.
-* Secret username and password for MinIO admin user.
+* Install either [Docker Desktop](https://www.docker.com/products/docker-desktop) or [Minikube](https://minikube.sigs.k8s.io/docs/).
+  * If using Docker Desktop enable Kubernetes integration.
+  * If using Minikube select your [driver](https://minikube.sigs.k8s.io/docs/drivers/) of choice. These docs assume the docker driver is used.
+* Install [Lens K8s IDE](https://k8slens.dev/).
+  * This is optional but recommended for navigating your K8s environment and for an easy button Prometheus deployment.
 
-## Deploy
+The deployment yaml __does NOT__ use templates to substitute values on `kubectl apply`, for example with `envsubst`, or [kustomize](https://kustomize.io/). Thus __before applying__ confirm values for the following.
+
+### StorageClass
+
+Both [Minikube](https://minikube.sigs.k8s.io/) and [K8s on Docker Desktop](https://docs.docker.com/desktop/kubernetes/) support hostpath Persistent Volume provisioning. You may need to edit `minio-all.yml` and specify the correct `storageClassName`. Docker Desktop's `storageClassName` is `hostpath`, where Minikube's is `standard`. The deployment yaml comments out `storageClassName` thus the cluster default StorageClass will be used, in most situations the default is set correctly by Minikube and Docker Desktop.
+
+### Prometheus Metrics Config
+
+[Lens K8s IDE](https://k8slens.dev/) is a great developer tool that has an easy button Prometheus deployment. MinIO is "conveniently" configured to use Prometheus provided by Lens, feel free to use any Prometheus deployment or remove the environment variables to opt out.
+  * __MINIO_PROMETHEUS_AUTH_TYPE:__ Set to "public" thus Prometheus does not authenticate with MinIO to scrape metrics.
+  * __MINIO_PROMETHEUS_URL:__ Set to the Prometheus service URL (`http://prometheus.lens-metrics`).
+
+Add the following scrape config for MinIO to your Prometheus deployment. If using Prometheus provided by Lens the configuration is stored in the `prometheus-config` ConfigMap.
+
+```yaml
+# prometheus.yml
+scrape_configs:
+# scrape config for MinIO configured with MINIO_PROMETHEUS_AUTH_TYPE=public
+- job_name: minio-job
+  metrics_path: /minio/v2/metrics/cluster
+  scheme: http
+  static_configs:
+  - targets: ['minio-server-svc.minio:9000'] 
+```
+
+### Secrets for Admin and Dev Users
+
+The following Secrets have values for username and password. Change to your tastes.
+
+  * __Admin User:__ `minio-admin-creds`
+  * __Dev User:__ `minio-dev-creds`
+
+## Deploy MinIO
 
 The `minio-all.yml` defines everything needed for a single node MinIO server. The following objects are created in K8s.
 
@@ -18,15 +53,19 @@ $ kubectl apply -f minio-all.yml
 ```
 
 1. A `minio` namespace where everything is deployed.
-2. An 8Gi [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims), mounted to `/data` on the MinIO server.
-3. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO admin creds.
-4. A [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for the MinIO server including the admin console.
-5. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9000` on the MinIO deployment for server connectivity.
-6. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9001` on the MinIO deployment for admin console connectivity.
-7. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9000` on the MinIO deployment for external server connectivity.
-8. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
+1. An 8Gi [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims), mounted to `/data` on the MinIO server.
+1. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO admin creds.
+1. A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) for MinIO dev user creds.
+1. A [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) for the MinIO server including the admin console.
+1. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9000` on the MinIO deployment for server connectivity.
+1. A [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service) targeting port `9001` on the MinIO deployment for admin console connectivity.
+1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9000` on the MinIO deployment for external server connectivity.
+1. A [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) targeting port `9001` on the MinIO deployment for external admin console connectivity.
 
-Both [Minikube](https://minikube.sigs.k8s.io/) and [K8s on Docker Desktop](https://docs.docker.com/desktop/kubernetes/) support hostpath Persistent Volume provisioning. You may need to edit `minio-all.yml` and specify the correct `storageClassName`. Docker Desktop's `storageClassName` is `hostpath`, where Minikube's is `standard`. The deployment yaml comments out `storageClassName` thus the cluster default Storage Class will be used, in most situations the default is set correctly by Minikube and Docker Desktop.
+After deploying open `http://localhost:9001` with your browser and login for a quick sanity check.
+
+![MinIO Console](resources/MinIO-Console.png "MinIO Console")
+
 
 ## Deploy MinIO Client
 
@@ -52,15 +91,15 @@ When the pod starts it performs the following:
 Once the pod is running you can `exec` into it and explore.
 
 ```bash
-# from your dev machine
+# pop into the "mc" container
 $ kubectl exec -i -t -n minio minio-mc -c minio-mc "--" sh -c "(bash || ash || sh)"
 # in the "mc" container
 [root@minio-mc /]$ mc ls minio/
-[2021-12-04 21:09:58 UTC]     0B 20211204-1638652198/
-[root@minio-mc /]$ mc ls minio/20211204-1638652198/
-[2021-12-04 21:09:59 UTC]    13B howdy.txt
-[2021-12-04 21:09:59 UTC] 1.5KiB mlb-parks.csv
-[2021-12-04 21:09:59 UTC] 2.8KiB people.json
+    0B 20211204-1638652198/
+$ mc ls minio/20211204-1638652198/
+   13B howdy.txt
+1.5KiB mlb-parks.csv
+2.8KiB people.json
 [root@minio-mc /]$ mc stat minio/20211204-1638652198/people.json
 Name      : people.json
 Date      : 2021-12-04 21:09:59 UTC 
@@ -70,9 +109,6 @@ Type      : file
 Metadata  :
   Content-Type: application/json
 ```
-
-
-
 
 ## References
 
