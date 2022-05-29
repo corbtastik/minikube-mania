@@ -1,4 +1,6 @@
-# Istio on dev K8s
+# Istio on Minikube
+
+## Install Istio
 
 ```bash
 curl -L https://istio.io/downloadIstio | sh -
@@ -9,7 +11,7 @@ kubectl label namespace default istio-injection=enabled
 kubectl label namespace dev istio-injection=enabled
 ```
 
-__Install bookinfo__
+## Install bookinfo
 
 ```bash
 kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
@@ -20,7 +22,7 @@ kubectl apply -f samples/bookinfo/networking/bookinfo-gateway.yaml
 istioctl analyze
 ```
 
-__Minikube without LoadBalancer__
+## Minikube without LoadBalancer
 
 ```bash
 export MINIKUBE_PROFILE=dev1
@@ -37,10 +39,17 @@ echo "GATEWAY_URL=$GATEWAY_URL"
 
 minikube tunnel -p $MINIKUBE_PROFILE
 curl http://$GATEWAY_URL/productpage
-
 ```
 
-__Minikube with a LoadBalancer__
+## Minikube with a LoadBalancer
+
+```bash
+export MINIKUBE_PROFILE=dev1
+# enable Metallb
+minikube -p $MINIKUBE_PROFILE addons enable metallb
+minikube -p $MINIKUBE_PROFILE addons configure metallb
+# Enter start and end IP range for Metallb to use
+```
 
 ```bash
 kubectl get svc istio-ingressgateway -n istio-system
@@ -53,15 +62,19 @@ echo "INGRESS_HOST=$INGRESS_HOST"
 echo "INGRESS_PORT=$INGRESS_PORT"
 echo "SECURE_INGRESS_PORT=$SECURE_INGRESS_PORT"
 echo "GATEWAY_URL=$GATEWAY_URL"
+
+curl http://$GATEWAY_URL/productpage
 ```
 
-__Install addons__
+## Install addons
 
 ```bash
 kubectl apply -f samples/addons
 kubectl rollout status deployment/kiali -n istio-system
 istioctl dashboard kiali
 ```
+
+## Send traffic into bookinfo
 
 ```bash
 while true; do
@@ -76,7 +89,7 @@ watch -n 1 curl -o /dev/null -s -w %{http_code} ${GATEWAY_URL}/productpage
 
 ## Uninstall
 
-__Uninstall bookinfo__
+### Uninstall bookinfo
 
 ```bash
 samples/bookinfo/platform/kube/cleanup.sh
@@ -86,7 +99,7 @@ kubectl get gateway           #-- there should be no gateway
 kubectl get pods              #-- the Bookinfo pods should be deleted
 ```
 
-__Uninstall Istio__
+### Uninstall Istio
 
 ```bash
 kubectl delete -f samples/addons

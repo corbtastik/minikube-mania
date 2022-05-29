@@ -1,4 +1,4 @@
-# MinIO on dev K8s
+# MinIO on Minikube
 
 [MinIO](https://min.io/) is object storage for on-prem and hybrid cloud environments and works great on Kubernetes.  In fact, they have a [Kubernetes Operator](https://github.com/minio/operator) to automate provisioning and management of object storage for multi-tenant environments.  If you're looking for an enterprise solution then definitely check out [their K8s work](https://docs.min.io/minio/k8s/).
 
