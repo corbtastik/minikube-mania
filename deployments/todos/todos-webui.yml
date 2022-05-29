@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todos-webui
+  labels:
+    app/name: todos-webui
+    app/component: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app/name: todos-webui
+      app/component: ui
+  template:
+    metadata:
+      labels:
+        app/name: todos-webui
+        app/component: ui
+    spec:
+      containers:
+        - name: todos-webui
+          image: quay.io/corbsmartin/todos-webui:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - name: http-server
+              containerPort: 8080
+          env:
+            - name: TODOS_WEBUI_PLACEHOLDER
+              value: "Milk, Bread, Kubernetes?"
+            - name: SPRING_SECURITY_USER_NAME
+              value: "Nacho Libre"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todos-webui-lb
+  labels:
+    app/name: todos-webui
+    app/component: lb
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app/name: todos-webui
+    app/component: ui
