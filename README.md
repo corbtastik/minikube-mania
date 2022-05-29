@@ -1,6 +1,6 @@
 # Minikube-mania
 
-My abode for platforms I often use locally on [minikube](https://minikube.sigs.k8s.io/).
+My abode for platforms I often use on [minikube](https://minikube.sigs.k8s.io/).
 
 ## DIY Deployments
 
