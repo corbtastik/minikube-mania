@@ -1,6 +1,6 @@
-# minikube-mania
+# Minikube-mania
 
-An exploration in using [minikube](https://minikube.sigs.k8s.io/) to host platforms for local development environments.
+My abode for platforms I often use locally on [minikube](https://minikube.sigs.k8s.io/).
 
 ## DIY Deployments
 
@@ -18,7 +18,6 @@ An exploration in using [minikube](https://minikube.sigs.k8s.io/) to host platfo
 * [Bitnami Redis](/deployments/bitnami/redis)
 * [Bitnami MinIO](/deployments/bitnami/minio)
 * [Bitnami Kafka](/deployments/bitnami/kafka)
-
 
 ## References
 
